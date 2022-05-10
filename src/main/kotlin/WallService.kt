@@ -24,6 +24,7 @@ object WallService {
         }
 
         fun getById(noteId: UInt): Note? {
+            // даёт доступ к удалённым - на случай восстановления
             var result: Note? = null
 
             for (note in notes)
@@ -130,16 +131,22 @@ object WallService {
             var result = emptyList<Comment>()
             var currPos = 0U
 
-            for (comment in comments)
-                if (currPos >= offset) {
-                    result += comment
-                    currPos++
+            for (comment in comments) {
+                if (comment.noteId == noteId)
+                    if (currPos >= offset) {
+                        result += comment
+                        currPos++
 
-                    if (currPos == count)
-                       break
-                }
+                        if (currPos == count)
+                            break
+                    } else
+                        continue
+            }
 
-            return  result
+            return if (sort)
+                      result.sortedBy { it.id }
+                   else
+                      result
         }
 }
 
