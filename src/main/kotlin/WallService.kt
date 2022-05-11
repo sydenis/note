@@ -3,10 +3,10 @@ import java.util.concurrent.atomic.AtomicInteger
 const val ERROR_NOT_FOUND = 180
 
 object WallService {
-        private var notes = emptyList<Note>()
+        private var notes = ArrayList<Note>()
         private var noteIdGen: AtomicInteger = AtomicInteger()
 
-        private var comments = emptyList<Comment>()
+        private var comments = ArrayList<Comment>()
         private var commentIdGen: AtomicInteger = AtomicInteger()
 
 
@@ -19,16 +19,16 @@ object WallService {
                     text
                 );
 
-            notes += note
+            notes.add(note)
             return id
         }
 
         fun getById(noteId: UInt): Note? {
-            // даёт доступ к удалённым - на случай восстановления
             var result: Note? = null
 
             for (note in notes)
-                if (note.id == noteId) {
+                if ((note.id == noteId) && (!note.deleted))
+                {
                     result = note
                     break
                 }
@@ -51,7 +51,7 @@ object WallService {
 
             return if (note?.deleted == false) {
                 val newNote = note.copy(title = title, text = text);
-                notes += newNote
+                notes[notes.indexOf(note)] = newNote
                 0
             } else
                 ERROR_NOT_FOUND
@@ -62,23 +62,23 @@ object WallService {
         }
 
         fun clear() {
-            notes = emptyList<Note>()
+            notes = ArrayList<Note>()
             noteIdGen.set(0)
 
-            comments = emptyList<Comment>()
+            comments = ArrayList<Comment>()
             commentIdGen.set(0)
         }
 
-        fun createComment(noteId: UInt, message: String): Int{
+        fun createComment(noteId: UInt, message: String): UInt{
             val note: Note? = getById(noteId)
 
             return if (note?.deleted == false) {
                 val cid = commentIdGen.incrementAndGet().toUInt()
                 val comment = Comment(cid, noteId, message)
-                comments += comment
-                0
+                comments.add(comment)
+                cid
             } else
-                ERROR_NOT_FOUND
+                ERROR_NOT_FOUND.toUInt()
         }
 
         fun getCommentById(commentId: UInt): Comment? {
@@ -107,8 +107,8 @@ object WallService {
            val comment: Comment? = getCommentById(commentId)
 
            return if (comment?.deleted == false) {
-              val newNComment = comment.copy(message = message);
-              comments += newNComment
+              val newComment = comment.copy(message = message);
+              comments[comments.indexOf(comment)] = newComment
               0
            } else
               ERROR_NOT_FOUND

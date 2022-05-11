@@ -32,10 +32,10 @@ class WallServiceTest {
     @Test
     fun delete() {
         val noteId = 1U
-        val expected = false
+        val expected = null
 
         WallService.delete(noteId)
-        val actual = WallService.getById(noteId)?.deleted
+        val actual = WallService.getById(noteId)
         assertEquals(expected, actual)
     }
 
@@ -82,7 +82,7 @@ class WallServiceTest {
         val expected = "updated"
 
         WallService.editComment(commentId, expected)
-        val actual = WallService.getById(commentId)?.text
+        val actual = WallService.getCommentById(commentId)?.message
         assertEquals(expected, actual)
     }
 
